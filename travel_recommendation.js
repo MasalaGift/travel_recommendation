@@ -1,54 +1,61 @@
-// ----- SEARCH (only on home page) -----
+
+// ----- DOM references -----
 const searchInput = document.getElementById('searchInput');
 const btnSearch = document.getElementById('btnSearch');
 const btnClear = document.getElementById('btnClear');
 const resultsContainer = document.getElementById('resultsContainer');
 
+// ----- Global data store -----
 let travelData = null;
-let dataLoaded = false;
 
-async function loadData() {
-    try {
-        const res = await fetch('travel_recommendation_api.json');
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        travelData = await res.json();
-        dataLoaded = true;
-        console.log('✅ Travel data loaded successfully');
-    } catch (err) {
-        console.error('❌ Failed to load travel data:', err);
-        travelData = null;
-        dataLoaded = false;
-        // Show a persistent error message in the results area if it exists
-        if (resultsContainer) {
-            resultsContainer.classList.add('visible');
-            resultsContainer.innerHTML = `
-                <div class="no-results">
-                    <div class="icon">⚠️</div>
-                    <h3>Data loading error</h3>
-                    <p>Could not load <strong>travel_recommendation_api.json</strong>. Please check the file and try again.</p>
-                </div>
-            `;
-        }
-    }
+// ----- Fetch data from JSON -----
+function loadData() {
+    fetch('travel_recommendation_api.json')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            travelData = data;
+            console.log('✅ Travel data loaded:', travelData);
+        })
+        .catch(error => {
+            console.error('❌ Error loading data:', error);
+            // Show error in results area
+            if (resultsContainer) {
+                resultsContainer.classList.add('visible');
+                resultsContainer.innerHTML = `
+                    <div class="no-results">
+                        <div class="icon">⚠️</div>
+                        <h3>Data loading failed</h3>
+                        <p>Could not load travel_recommendation_api.json. Please check the file.</p>
+                    </div>
+                `;
+            }
+        });
 }
 
-function performSearch() {
-    if (!searchInput || !resultsContainer) return; // not on home page
+// ----- Search logic (similar to your example) -----
+function searchCondition() {
+    // Clear previous results
+    resultsContainer.innerHTML = '';
+    resultsContainer.classList.remove('visible');
 
     const query = searchInput.value.trim();
     if (!query) {
-        resultsContainer.classList.remove('visible');
-        resultsContainer.innerHTML = '';
-        return;
+        return; // do nothing if empty
     }
 
-    if (!dataLoaded || !travelData) {
+    // If data not yet loaded, show message
+    if (!travelData) {
         resultsContainer.classList.add('visible');
         resultsContainer.innerHTML = `
             <div class="no-results">
                 <div class="icon">⏳</div>
-                <h3>Data not available</h3>
-                <p>Please wait for the data to load, or check that the JSON file exists.</p>
+                <h3>Loading data…</h3>
+                <p>Please wait for the data to load and try again.</p>
             </div>
         `;
         return;
@@ -57,52 +64,79 @@ function performSearch() {
     const lowerQuery = query.toLowerCase();
     let results = [];
 
-    // Beaches
+    // --- 1) Check for beach keywords ---
     if (lowerQuery.includes('beach') || lowerQuery.includes('beaches')) {
-        results = results.concat(travelData.beaches.map(b => ({ ...b, type: 'beach' })));
+        results = results.concat(travelData.beaches.map(item => ({
+            ...item,
+            type: 'beach'
+        })));
     }
 
-    // Temples
+    // --- 2) Check for temple keywords ---
     if (lowerQuery.includes('temple') || lowerQuery.includes('temples')) {
-        results = results.concat(travelData.temples.map(t => ({ ...t, type: 'temple' })));
+        results = results.concat(travelData.temples.map(item => ({
+            ...item,
+            type: 'temple'
+        })));
     }
 
-    // Countries
+    // --- 3) Check for country or city ---
+    // If query contains "country" or "countries", show all cities from all countries
     if (lowerQuery.includes('country') || lowerQuery.includes('countries')) {
-        travelData.countries.forEach(c => {
-            c.cities.forEach(city => {
-                results.push({ name: `${city.name}, ${c.name}`, imageUrl: city.imageUrl, description: city.description, type: 'country' });
+        travelData.countries.forEach(country => {
+            country.cities.forEach(city => {
+                results.push({
+                    name: `${city.name}, ${country.name}`,
+                    imageUrl: city.imageUrl,
+                    description: city.description,
+                    type: 'country'
+                });
             });
         });
     } else {
-        travelData.countries.forEach(c => {
-            if (c.name.toLowerCase().includes(lowerQuery)) {
-                c.cities.forEach(city => {
-                    results.push({ name: `${city.name}, ${c.name}`, imageUrl: city.imageUrl, description: city.description, type: 'country' });
+        // Otherwise, search for matching country name or city name
+        travelData.countries.forEach(country => {
+            // Check if country name matches
+            if (country.name.toLowerCase().includes(lowerQuery)) {
+                country.cities.forEach(city => {
+                    results.push({
+                        name: `${city.name}, ${country.name}`,
+                        imageUrl: city.imageUrl,
+                        description: city.description,
+                        type: 'country'
+                    });
+                });
+            } else {
+                // Check if any city name matches
+                country.cities.forEach(city => {
+                    if (city.name.toLowerCase().includes(lowerQuery)) {
+                        results.push({
+                            name: `${city.name}, ${country.name}`,
+                            imageUrl: city.imageUrl,
+                            description: city.description,
+                            type: 'country'
+                        });
+                    }
                 });
             }
-            c.cities.forEach(city => {
-                if (city.name.toLowerCase().includes(lowerQuery)) {
-                    results.push({ name: `${city.name}, ${c.name}`, imageUrl: city.imageUrl, description: city.description, type: 'country' });
-                }
-            });
         });
     }
 
-    // Deduplicate by name
+    // Remove duplicates (same name)
     const seen = new Set();
-    results = results.filter(r => {
-        const key = r.name;
+    results = results.filter(item => {
+        const key = item.name;
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
     });
 
-    renderResults(results, query);
+    // --- Display results ---
+    displayResults(results, query);
 }
 
-function renderResults(results, query) {
-    if (!resultsContainer) return;
+// ----- Display results in grid -----
+function displayResults(results, query) {
     resultsContainer.classList.add('visible');
 
     if (results.length === 0) {
@@ -110,21 +144,23 @@ function renderResults(results, query) {
             <div class="no-results">
                 <div class="icon">🔍</div>
                 <h3>No results found</h3>
-                <p>Try searching for "beach", "temple", or a country name.</p>
+                <p>Try searching for "beach", "temple", or a country/city name.</p>
             </div>
         `;
         return;
     }
 
-    const display = results.slice(0, 8);
+    // Limit to 8 results
+    const displayItems = results.slice(0, 8);
+
     let html = `
         <div class="results-title">
-            <span>📍</span> ${display.length} recommendation${display.length > 1 ? 's' : ''} for "${escapeHtml(query)}"
+            <span>📍</span> ${displayItems.length} recommendation${displayItems.length > 1 ? 's' : ''} for "${escapeHtml(query)}"
         </div>
         <div class="results-grid">
     `;
 
-    display.forEach(item => {
+    displayItems.forEach(item => {
         const typeLabel = item.type === 'beach' ? '🏖️ Beach' :
                           item.type === 'temple' ? '🛕 Temple' : '🌍 Country';
         html += `
@@ -143,13 +179,14 @@ function renderResults(results, query) {
     resultsContainer.innerHTML = html;
 }
 
+// ----- Clear results -----
 function clearResults() {
-    if (!searchInput || !resultsContainer) return;
     searchInput.value = '';
     resultsContainer.classList.remove('visible');
     resultsContainer.innerHTML = '';
 }
 
+// ----- Helper: escape HTML to prevent XSS -----
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/[&<>"]/g, function(m) {
@@ -161,17 +198,21 @@ function escapeHtml(str) {
     });
 }
 
-// Attach event listeners only if elements exist (home page)
+// ----- Attach event listeners -----
 if (btnSearch && searchInput && btnClear) {
-    btnSearch.addEventListener('click', performSearch);
+    btnSearch.addEventListener('click', searchCondition);
     btnClear.addEventListener('click', clearResults);
-    searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') performSearch(); });
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            searchCondition();
+        }
+    });
 }
 
-// Load data once on page load
+// ----- Load data on page load -----
 loadData();
 
-// ----- CONTACT FORM (only on contact page) -----
+// ----- Contact form (optional) -----
 const contactForm = document.getElementById('contactForm');
 if (contactForm) {
     contactForm.addEventListener('submit', function(e) {
@@ -180,21 +221,19 @@ if (contactForm) {
         const email = document.getElementById('contactEmail').value.trim();
         const msg = document.getElementById('contactMessage').value.trim();
         if (name && email && msg) {
-            alert(`✅ Thank you, ${name}! We've received your message and will get back to you soon.`);
+            alert(`✅ Thank you, ${name}! We've received your message.`);
             this.reset();
         } else {
-            alert('⚠️ Please fill in all fields before submitting.');
+            alert('⚠️ Please fill all fields.');
         }
     });
 }
 
-// ----- Set active nav link based on current page -----
-document.addEventListener('DOMContentLoaded', () => {
+// ----- Highlight active nav link (runs on all pages) -----
+document.addEventListener('DOMContentLoaded', function() {
     const currentPath = window.location.pathname.split('/').pop() || 'home.html';
-    const links = document.querySelectorAll('.nav-links a');
-    links.forEach(link => {
-        const href = link.getAttribute('href');
-        if (href === currentPath) {
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        if (link.getAttribute('href') === currentPath) {
             link.classList.add('active');
         } else {
             link.classList.remove('active');

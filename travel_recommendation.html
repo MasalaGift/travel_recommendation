@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Travel Bloom – Home</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+    <!-- ===== NAVIGATION ===== -->
+    <nav>
+        <div class="nav-brand">
+            <span class="logo-icon">✈️</span>
+            <h1>Travel Bloom</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="travel_recommendation.html" class="active">Home</a></li>
+            <li><a href="about_us.html">About Us</a></li>
+            <li><a href="contact_us.html">Contact Us</a></li>
+            <li class="search-container">
+                <input type="text" id="searchInput" placeholder="Enter a destination or keyword…" />
+                <button id="btnSearch">Search</button>
+                <button id="btnClear" class="btn-clear">Clear</button>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- ===== SOCIAL SIDEBAR ===== -->
+    <div class="social-sidebar">
+        <a href="#" aria-label="Twitter">
+            <img src="twitter.png" alt="Twitter" />
+        </a>
+        <a href="#" aria-label="Facebook">
+            <img src="facebook.png" alt="Facebook" />
+        </a>
+        <a href="#" aria-label="Instagram">
+            <img src="instagram.jpg" alt="Instagram" />
+        </a>
+        <a href="#" aria-label="YouTube">
+            <img src="youtube.png" alt="YouTube" />
+        </a>
+    </div>
+
+    <!-- ===== MAIN ===== -->
+    <div class="container">
+        <div class="home-content">
+            <div class="bg-overlay"></div>
+            <div class="text-content">
+                <h2>EXPLORE <span>DREAM</span> DESTINATIONS</h2>
+                <p>
+                    The Travel Recommendation App helps users explore popular travel destinations
+                    through an interactive and user-friendly interface. It allows you to search for
+                    beaches, temples, countries, or specific country names to view related cities
+                    with images and descriptions. Discover and plan your next adventure with ease.
+                </p>
+                <a href="contact_us.html" class="btn-book">🌍 Book Now</a>
+            </div>
+        </div>
+
+        <!-- Results appear here -->
+        <div id="resultsContainer" class="results-section"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

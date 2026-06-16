@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Travel Bloom – Contact Us</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+    <!-- ===== NAVIGATION (no search) ===== -->
+    <nav>
+        <div class="nav-brand">
+            <span class="logo-icon">✈️</span>
+            <h1>Travel Bloom</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="home.html">Home</a></li>
+            <li><a href="about_us.html">About Us</a></li>
+            <li><a href="contact_us.html" class="active">Contact Us</a></li>
+        </ul>
+    </nav>
+
+    <!-- ===== SOCIAL SIDEBAR ===== -->
+    <div class="social-sidebar">
+        <a href="#" aria-label="Twitter">
+            <img src="twitter.png" alt="Twitter" />
+        </a>
+        <a href="#" aria-label="Facebook">
+            <img src="facebook.png" alt="Facebook" />
+        </a>
+        <a href="#" aria-label="Instagram">
+            <img src="instagram.jpg" alt="Instagram" />
+        </a>
+        <a href="#" aria-label="YouTube">
+            <img src="youtube.png" alt="YouTube" />
+        </a>
+    </div>
+
+    <!-- ===== MAIN ===== -->
+    <div class="container">
+        <div class="contact-content">
+            <h2>Contact Us</h2>
+            <p class="subtitle">We'd love to hear from you! Reach out with any questions or feedback.</p>
+            <form id="contactForm" class="contact-form">
+                <label for="contactName">Your Name</label>
+                <input type="text" id="contactName" placeholder="Enter your full name" required />
+
+                <label for="contactEmail">Email Address</label>
+                <input type="email" id="contactEmail" placeholder="Enter your email" required />
+
+                <label for="contactMessage">Message</label>
+                <textarea id="contactMessage" placeholder="Tell us about your travel dreams…" required></textarea>
+
+                <button type="submit" class="btn-submit">✉️ Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
